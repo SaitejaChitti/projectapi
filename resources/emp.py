@@ -177,12 +177,12 @@ class Clubdelete(Resource):
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         data=parser.parse_args()
         try:
-            query(f"""delete from superadmin where username='{data['username']}'""")
+            
+            clubname=query(f"""select clubname from admin where username='{data['username']}'""")
+            query(f"""delete from admin where username='{data['username']}'""")
+            query(f"""drop table '{clubname}'""")
         except:
             return {"message":"tables are not deleted"}
-
-
-        return {"message":"Table dropped succsesfully"}
 
 class Clubnames(Resource):
     #@jwt_required
@@ -234,3 +234,18 @@ class Adminlog(Resource):
             access_token=create_access_token(identity=user.username,expires_delta=False)
             return {'access_token':access_token},200
         return {"message":"Invalid Credentials!"}, 401
+
+class Clubmembers(Resource):
+    @jwt_required
+    def post(self):
+        parser=reqparse.RequestParser()
+        parser.add_argument('clubname',type=str,required=True,help="clubname cannot be left blank!")
+        data=parser.parse_args()
+        clubname = data['clubname']
+        try:
+            
+            return query(f"""select p.stuid,p.name,p.branch,s.crole from profile p,student s
+             where s.clubname='{clubname}' and p.stuid=s.stuid and s.acceptstatus=1""")
+            
+        except:
+            return {"message":"club members not returned"},500
