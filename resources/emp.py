@@ -37,7 +37,7 @@ class Profile(Resource):
                                                         '{data['emailid']}')""")
         except:
             return {"message":"There was an error inserting into profile table."},500
-        
+
         return {"message":"Successfully Inserted."},201
 
 class Changepassword(Resource):
@@ -82,26 +82,26 @@ class Addclub(Resource):
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
         parser.add_argument('clubname',type=str,required=True,help="clubname cannot be left blank!")
         data=parser.parse_args()
-        
+
         try:
-            
+
             query(f"""INSERT INTO admin (uid,username,password,clubname)
                                                     VALUES('{data['uid']}','{data['username']}',
                                                         '{data['password']}','{data['clubname']}')""")
-            
+
 
         except:
-            
+
             return {"message":"There was an error inserting into admin table,bcoz the user has not registered in superadmin"},500
-            
+
         try:
-            
+
             query(f"""create table {data['clubname']} (clubid int primary key auto_increment,stuid int,eventname varchar(40),eventdate date)""")
-            
+
         except:
-            
+
             return {"message":"There was an error in creating the club"},500
-            
+
         return {"message":"Successfully Inserted and created."},201
 
 class Addclubmembers(Resource):
@@ -139,7 +139,7 @@ class Allclubdetails(Resource):
             return {"Unable to insert in to student club table"}
         return {"Succefully inserted into student table"}
 
-        
+
 class Adminlogin(Resource):
     @jwt_required
     def get(self):
@@ -163,13 +163,13 @@ class Adminlogin(Resource):
                                                         '{data['password']}','{data['clubname']}')""")
         except:
             return {"message":"There was an error inserting into admin table,bcoz the user has not registered in superadmin"},500
-        
+
         try:
             query(f"""create table {data['clubname']} (clubid int primary key auto_increment,stuid int,eventname varchar(40),eventdate date)""")
         except:
             return {"message":"There was an error in creating the club"},500
         return {"message":"Successfully Inserted and created."},201
-        
+
 class Clubdelete(Resource):
     @jwt_required
     def post(self):
@@ -177,7 +177,9 @@ class Clubdelete(Resource):
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         data=parser.parse_args()
         try:
-            query(f"""delete from superadmin where username='{data['username']}'""")
+            clubname=query(f"""select clubname from admin where username='{data['useraname']}'""")
+            query(f"""delete from admin where username='{data['username']}'""")
+            query(f"""drop table '{clubname}'""")
         except:
             return {"message":"tables are not deleted"}
 
