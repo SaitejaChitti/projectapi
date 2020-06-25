@@ -41,24 +41,24 @@ class Profile(Resource):
         return {"message":"Successfully Inserted."},201
 
 class Changepassword(Resource):
-    @jwt_required
     def post(self):
         parser=reqparse.RequestParser()
-        parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
+        parser.add_argument('otp',type=str,required=True,help="otp cannot be left blank!")
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
-        data=parser.parse-args()
+        data=parser.parse_args()
         try:
-            query(f"""update table admin set password='{data['password']}' where username='{data['username']}'""")
+            result=query(f"""SELECT * FROM project.email where pin='{data['otp']}' """,return_json=False)
+            query(f"""update admin set password='{data['password']}' where uid='{result[0]['stuid']}' """)
+            return {'message':"Updation of password is succesfully done!"}
         except:
-            return {"message":"Updation of password is not successful"}
-        return {"password updated successfully"}
+            return {"message":"Updation of password is not successful"},500
 
 class superadmin(Resource):
     def post(self):
         parser=reqparse.RequestParser()
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
-        data=parser.parse-args()
+        data=parser.parse_args()
 
         try:
             query(f"""insert into superadmin values('{data['username']}','{data['password']}')""")
