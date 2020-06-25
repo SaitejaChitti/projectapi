@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from resources.emp import Adminlogin,Profile,Clubdelete,Clubnames,Login,Adminlog,Allclubdetails,Addclubmembers,Changepassword,Addclub
+from resources.emp import Adminlogin,Profile,Clubmembers,Clubdelete,Clubnames,Login,Adminlog,Allclubdetails,Addclubmembers,Changepassword,Addclub,ForgetPassword
 from flask_jwt_extended import JWTManager
 
 app=Flask(__name__)
@@ -12,6 +12,8 @@ api.add_resource(Adminlogin,'/adminlogin')
 api.add_resource(Profile,'/profile')
 api.add_resource(Clubdelete,'/del')
 api.add_resource(Clubnames,'/clubnames')
+api.add_resource(ForgetPassword,'/forgetpassword')
+api.add_resource(Clubmembers,'/clubmembers')
 api.add_resource(Login,'/login')
 api.add_resource(Allclubdetails,'/allclub')
 api.add_resource(Addclubmembers,'/addclubmembers')

@@ -41,24 +41,24 @@ class Profile(Resource):
         return {"message":"Successfully Inserted."},201
 
 class Changepassword(Resource):
-    @jwt_required
     def post(self):
         parser=reqparse.RequestParser()
-        parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
+        parser.add_argument('otp',type=str,required=True,help="otp cannot be left blank!")
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
-        data=parser.parse-args()
+        data=parser.parse_args()
         try:
-            query(f"""update table admin set password='{data['password']}' where username='{data['username']}'""")
+            result=query(f"""SELECT * FROM project.email where pin='{data['otp']}' """,return_json=False)
+            query(f"""update admin set password='{data['password']}' where uid='{result[0]['stuid']}' """)
+            return {'message':"Updation of password is succesfully done!"}
         except:
-            return {"message":"Updation of password is not successful"}
-        return {"password updated successfully"}
+            return {"message":"Updation of password is not successful"},500
 
 class superadmin(Resource):
     def post(self):
         parser=reqparse.RequestParser()
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
-        data=parser.parse-args()
+        data=parser.parse_args()
 
         try:
             query(f"""insert into superadmin values('{data['username']}','{data['password']}')""")
@@ -176,16 +176,19 @@ class Clubdelete(Resource):
         parser=reqparse.RequestParser()
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         data=parser.parse_args()
+
         try:
-            clubname=query(f"""select clubname from admin where username='{data['useraname']}'""")
+
+            clubname=query(f"""select clubname from admin where username='{data['username']}'""",return_json=False)
+            cname=clubname[0]['clubname']
+
             query(f"""delete from admin where username='{data['username']}'""")
-            query(f"""drop table '{clubname}'""")
+
+            query("drop table if exists {}".format(cname))
+
+            return {"message":"deleted"}
         except:
-            return {"message":"tables are not deleted"}
-
-
-        return {"message":"Table dropped succsesfully"}
-
+            return {"message":"tables are not deleted"},500
 class Clubnames(Resource):
     #@jwt_required
     def get(self):
@@ -193,7 +196,20 @@ class Clubnames(Resource):
             return query(f"""select clubname from admin""")
         except:
             return {"message":"Unable to fetch club names"}
+class Clubmembers(Resource):
+    @jwt_required
+    def post(self):
+        parser=reqparse.RequestParser()
+        parser.add_argument('clubname',type=str,required=True,help="clubname cannot be left blank!")
+        data=parser.parse_args()
+        clubname = data['clubname']
+        try:
 
+            return query(f"""select p.stuid,p.name,p.branch,s.crole from profile p,student s
+             where s.clubname='{clubname}' and p.stuid=s.stuid and s.acceptstatus=1""")
+
+        except:
+            return {"message":"club members not returned"},500
 
 class User():
     def __init__(self,username,password):
@@ -207,9 +223,9 @@ class User():
         return None
 
     @classmethod
-    def getAdminbyUsername(cls,username):
-        result=query(f"""SELECT username,password FROM admin WHERE username='{username}'""",return_json=False)
-        if len(result)>0: return User(result[0]['username'],result[0]['password'])
+    def getAdminbyUserid(cls,username):
+        result=query(f"""SELECT uid,password FROM admin WHERE uid='{username}'""",return_json=False)
+        if len(result)>0: return User(result[0]['uid'],result[0]['password'])
         return None
 
 class Login(Resource):
@@ -228,11 +244,26 @@ class Login(Resource):
 class Adminlog(Resource):
     def post(self):
         parser=reqparse.RequestParser()
-        parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
+        parser.add_argument('userid',type=int,required=True,help="userid cannot be left blank!")
         parser.add_argument('password',type=str,required=True,help="password cannot be left blank!")
         data=parser.parse_args()
-        user=User.getAdminbyUsername(data['username'])
+        user=User.getAdminbyUserid(data['userid'])
         if user and safe_str_cmp(user.password,data['password']):
             access_token=create_access_token(identity=user.username,expires_delta=False)
             return {'access_token':access_token},200
         return {"message":"Invalid Credentials!"}, 401
+class ForgetPassword(Resource):
+    @jwt_required
+    def post(self):
+        parser=reqparse.RequestParser()
+        parser.add_argument('userid',type=int,required=True,help="userid name cannot be left blank!")
+        parser.add_argument('otp',type=str,required=True,help="OTP not assigned")
+        data=parser.parse_args()
+        adminid = data['userid']
+        otp=data['otp']
+        try:
+            result=query(f"""select emailid from project.profile where stuid={adminid} """,return_json=False)
+            query(f""" insert into email (stuid,emailid,pin) values ({adminid},'{result[0]['emailid']}','{otp}')""")
+            return result
+        except:
+            return {"message":"No entry with the given studentid "},500
