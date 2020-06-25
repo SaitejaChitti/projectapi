@@ -176,13 +176,19 @@ class Clubdelete(Resource):
         parser=reqparse.RequestParser()
         parser.add_argument('username',type=str,required=True,help="username cannot be left blank!")
         data=parser.parse_args()
+
         try:
             
-            clubname=query(f"""select clubname from admin where username='{data['username']}'""")
+            clubname=query(f"""select clubname from admin where username='{data['username']}'""",return_json=False)
+            cname=clubname[0]['clubname']
+            
             query(f"""delete from admin where username='{data['username']}'""")
-            query(f"""drop table '{clubname}'""")
+            
+            query("drop table if exists {}".format(cname))
+            
+            return {"message":"deleted"}
         except:
-            return {"message":"tables are not deleted"}
+            return {"message":"tables are not deleted"},500
 
 class Clubnames(Resource):
     #@jwt_required
