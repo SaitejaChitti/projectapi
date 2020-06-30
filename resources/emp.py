@@ -332,7 +332,7 @@ class Displaypostevents(Resource):
             ,'{start}','{end}','{data['coordinator']}','{data['contact']}')""")
         except:
             return {"message":"Error in inserting into event table"}
-        
+
 
 class Requesttoclub(Resource):
     def get(self):
@@ -376,7 +376,7 @@ class Deletemembers(Resource):
         data=parser.parse_args()
         try:
             query(f"""delete from student where stuid= '{data['stuid']}' and clubname='{data['clubname']}' """)
-            return {"message":"succesfully deleted"}
+
         except:
             return {"message":"failed to delete"}
 
@@ -400,7 +400,7 @@ class EditAdmin(Resource):
             #print(name[0]['name'])
             query(f""" update admin set uid={newadminid},username='{name[0]['name']}' where username='{admin_name}'""")
 
-            return {'message':"Update Successfully Done!"}
+            return {"message":"Successfully Updated"}
         except:
             return {"message":"Unable to Update "},500
 
