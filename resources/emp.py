@@ -302,7 +302,7 @@ class Displaypostevents(Resource):
         #print(data['clubname'])
         try:
 
-            return query(f"""select eventname,eventdate,description,venue,time_format(start,"%T"),time_format(end,"%T"),coordinator,contact from event where clubname='{data['clubname']}' """)
+            return query(f"""select eventname,date_format(eventdate,"%Y-%m-%d"),description,venue,time_format(start,"%T"),time_format(end,"%T"),coordinator,contact from event where clubname='{data['clubname']}' """)
         except:
 
             return {"message":"Error in connecting to table"}
@@ -423,3 +423,17 @@ class Mail(Resource):
                 return query(f"""select emailid from project.profile  where name='{username}' """,return_json=False)
             except:
                 return {"message":"No entry with the given studentid "},500
+class Eventmembers(Resource):
+    def get(self):
+        parser=reqparse.RequestParser()
+        parser.add_argument('clubname',type=str,required=False,help="club name cannot be left blank!")
+        parser.add_argument('eventname',type=str,required=False,help="event name cannot be left blank!")
+        parser.add_argument('eventdate',type=str,required=False,help="event date cannot be left blank!")
+        data = parser.parse_args()
+        date=data["eventdate"]
+        date = datetime.strptime(date,'%Y-%m-%d').date()
+        try:
+            return query(f"""select p.stuid,p.name,p.branch,p.year from profile p,{data['clubname']} c
+                where c.eventname='{data['eventname']}' and p.stuid=c.stuid and date_format(c.eventdate,"%Y-%m-%d") ='{date}' """)
+        except:
+            return {"message":"unable to fetch"},500
