@@ -45,7 +45,7 @@ class User():
     def __init__(self,username,password):
         self.username=username
         self.password=password
-        
+
     @classmethod
     def getUserByUsername(cls,username):
         result=query(f"""SELECT username,password FROM superadmin WHERE username='{username}'""",return_json=False)
@@ -159,7 +159,7 @@ class Addclub(Resource):
 
         except:
             return {"message":"There was an error inserting admin into student table"},500
-        
+
         try:
 
             query(f"""create table {data['clubname']} (clubid int primary key auto_increment,stuid int,eventname varchar(40),eventdate date)""")
@@ -168,7 +168,6 @@ class Addclub(Resource):
 
             return {"message":"There was an error in creating the club"},500
 
-        return {"message":"Successfully Inserted and created."},201
 
 
 
@@ -217,7 +216,7 @@ class Adminlogin(Resource):
         except:
             return {"message":"There was an error inserting into admin table,bcoz the user has not registered in superadmin"},500
 
-        
+
         try:
             query(f"""create table {data['clubname']} (clubid int primary key auto_increment,stuid int,eventname varchar(40),eventdate date)""")
         except:
@@ -300,12 +299,12 @@ class Displaypostevents(Resource):
         parser=reqparse.RequestParser()
         parser.add_argument('clubname',type=str,required=True,help="clubname cannot be left blank!")
         data=parser.parse_args()
-        print(data['clubname'])
+        #print(data['clubname'])
         try:
-            print('hi')
+
             return query(f"""select eventname,eventdate,description,venue,time_format(start,"%T"),time_format(end,"%T"),coordinator,contact from event where clubname='{data['clubname']}' """)
         except:
-            print('hello')
+
             return {"message":"Error in connecting to table"}
     @jwt_required
     def post(self):
@@ -332,22 +331,21 @@ class Displaypostevents(Resource):
             query(f"""insert into event values('{data['clubname']}','{data['eventname']}','{date}','{data['description']}','{data['venue']}'
             ,'{start}','{end}','{data['coordinator']}','{data['contact']}')""")
         except:
-            query("Error in inserting into event table")
-        return {"message":"Successfully inserted"}
-
+            return {"message":"Error in inserting into event table"}
+        
 
 class Requesttoclub(Resource):
     def get(self):
         parser=reqparse.RequestParser()
         parser.add_argument('clubname',type=str,required=True,help="clubname cannot be left blank!")
         data=parser.parse_args()
-        print(data)
+        #print(data)
         clubname = data['clubname']
         try:
             return query(f"""select p.stuid,p.name,p.branch,p.year from profile p,student s
              where s.clubname='{clubname}' and p.stuid=s.stuid and s.acceptstatus=-1 """)
         except:
-            return {"error in fetching details of student"}
+            return {'message':"error in fetching details of student"}
     @jwt_required
     def post(self):
         parser=reqparse.RequestParser()
@@ -358,18 +356,16 @@ class Requesttoclub(Resource):
         parser.add_argument('acceptstatus',type=int,required=True,help="acceptstatus cannot be left blank!")
         data=parser.parse_args()
         if(data['acceptstatus'] != -1):
-            
+
             try:
                 query(f"""update student set acceptstatus='{data['acceptstatus']}' where stuid='{data['stuid']}' and clubname='{data['clubname']}' """)
             except:
-                return {"Accept status are not changed"}
+                return {'message':"Accept status are not changed"}
         else:
             try:
                 query(f"""insert into student values(default,'{data['stuid']}','{data['clubname']}','{data['crole']},-1)' """)
             except:
-                return {"Not able to insert into student table"}
-        
-        return {"message":"Succesfully updated"}
+                return {'message':"Not able to insert into student table"}
 
 class Deletemembers(Resource):
     @jwt_required
@@ -401,12 +397,12 @@ class EditAdmin(Resource):
             return {"message":"No entry with the given studentid "},500
         try:
             name=query(f"""select name from project.profile where stuid={newadminid} """,return_json=False)
-            print(name[0]['name'])
+            #print(name[0]['name'])
             query(f""" update admin set uid={newadminid},username='{name[0]['name']}' where username='{admin_name}'""")
 
             return {'message':"Update Successfully Done!"}
         except:
-            return {"msg":"Unable to Update "},500
+            return {"message":"Unable to Update "},500
 
 class Mail(Resource):
     @jwt_required
@@ -427,4 +423,3 @@ class Mail(Resource):
                 return query(f"""select emailid from project.profile  where name='{username}' """,return_json=False)
             except:
                 return {"message":"No entry with the given studentid "},500
-
